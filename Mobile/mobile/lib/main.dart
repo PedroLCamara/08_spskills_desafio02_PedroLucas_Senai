@@ -1,4 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:http/http.dart' as http;
+import 'dart:developer';
+import 'dart:convert';
 
 void main() {
   runApp(const MyApp());
@@ -11,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Hello World',
+      title: 'VitaHealth',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -22,9 +28,75 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.lightGreen,
       ),
-      home: const MyHomePage(title: 'Hello world'),
+      home: const MyHomePage(title: 'VitaHealth'),
+    );
+  }
+}
+
+class EmailForm extends StatefulWidget {
+  const EmailForm({Key? key}) : super(key: key);
+
+  @override
+  _EmailFormState createState() => _EmailFormState();
+}
+
+// Define a corresponding State class.
+// This class holds the data related to the Form.
+class _EmailFormState extends State<EmailForm> {
+  // Create a text controller and use it to retrieve the current value
+  // of the TextField.
+  static final controladorEmailForm = TextEditingController();
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    controladorEmailForm.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        hintText: 'Email',
+      ),
+        controller: controladorEmailForm,
+    );
+  }
+}
+
+class SenhaForm extends StatefulWidget {
+  const SenhaForm({Key? key}) : super(key: key);
+
+  @override
+  _SenhaFormState createState() => _SenhaFormState();
+}
+
+// Define a corresponding State class.
+// This class holds the data related to the Form.
+class _SenhaFormState extends State<SenhaForm> {
+  // Create a text controller and use it to retrieve the current value
+  // of the TextField.
+  static final controladorSenhaForm = TextEditingController();
+
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    controladorSenhaForm.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      decoration: const InputDecoration(
+        border: OutlineInputBorder(),
+        hintText: 'Senha',
+      ),
+      controller: controladorSenhaForm,
     );
   }
 }
@@ -48,21 +120,76 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
+    Future<void> fetchLogin() async {
+      final response = await http
+          .post(Uri.parse('http://192.168.15.123:5000/api/Login'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+        },
+        body: jsonEncode(<String, String>{
+          'email': _EmailFormState.controladorEmailForm.text,
+          'senha': _SenhaFormState.controladorSenhaForm.text
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        // If the server did return a 200 OK response,
+        // then parse the JSON.
+        return showDialog<void>(
+          context: context,
+          barrierDismissible: false, // user must tap button!
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Sucesso!!!'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text(response.body)
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK!'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // If the server did not return a 200 OK response,
+        // then throw an exception.
+        return showDialog<void>(
+          context: context,
+          barrierDismissible: false, // user must tap button!
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Fracasso!!!'),
+              content: SingleChildScrollView(
+                child: ListBody(
+                  children: <Widget>[
+                    Text(response.body)
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('OK!'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
+    }
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -94,22 +221,21 @@ class _MyHomePageState extends State<MyHomePage> {
           // axis because Columns are vertical (the cross axis would be
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
+          children: [
+            const EmailForm(),
+            const SizedBox(height: 20),
+            const SenhaForm(),
+            const SizedBox(height: 20),
+            TextButton(style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.green),
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                minimumSize: MaterialStateProperty.all(Size(180, 60))
+              ), onPressed: (){
+                fetchLogin();
+              }, child: Text('Entrar'))
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

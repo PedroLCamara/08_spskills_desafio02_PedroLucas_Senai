@@ -1,5 +1,5 @@
 import 'dart:ui';
-
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -9,6 +9,7 @@ import 'dart:convert';
 void main() {
   runApp(const MyApp());
 }
+Color InputsColor = Color(0xff808080);
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.lightGreen,
       ),
       home: const MyHomePage(title: 'VitaHealth'),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -59,8 +61,16 @@ class _EmailFormState extends State<EmailForm> {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
+      decoration: InputDecoration(
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: InputsColor, width: 2.0),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: InputsColor, width: 2.0),
+          ),
+        border: OutlineInputBorder(
+            borderSide: BorderSide(color: InputsColor, width: 2.0)
+        ),
         hintText: 'Email',
       ),
         controller: controladorEmailForm,
@@ -92,8 +102,19 @@ class _SenhaFormState extends State<SenhaForm> {
   @override
   Widget build(BuildContext context) {
     return TextField(
-      decoration: const InputDecoration(
-        border: OutlineInputBorder(),
+      obscureText: true,
+      enableSuggestions: false,
+      autocorrect: false,
+      decoration: InputDecoration(
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: InputsColor, width: 2.0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: InputsColor, width: 2.0),
+        ),
+        border: OutlineInputBorder(
+            borderSide: BorderSide(color: InputsColor, width: 2.0)
+        ),
         hintText: 'Senha',
       ),
       controller: controladorSenhaForm,
@@ -122,6 +143,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setEnabledSystemUIOverlays([]);
     Future<void> fetchLogin() async {
       final response = await http
           .post(Uri.parse('http://192.168.15.123:5000/api/Login'),
@@ -133,10 +155,9 @@ class _MyHomePageState extends State<MyHomePage> {
           'senha': _SenhaFormState.controladorSenhaForm.text
         }),
       );
-
       if (response.statusCode == 200) {
-        // If the server did return a 200 OK response,
-        // then parse the JSON.
+        InputsColor = Color(0xff808080);
+        rebuildAllChildren(context);
         return showDialog<void>(
           context: context,
           barrierDismissible: false, // user must tap button!
@@ -162,8 +183,8 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         );
       } else {
-        // If the server did not return a 200 OK response,
-        // then throw an exception.
+        InputsColor = Color(0xffFF0000);
+        rebuildAllChildren(context);
         return showDialog<void>(
           context: context,
           barrierDismissible: false, // user must tap button!
@@ -197,11 +218,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -222,20 +238,38 @@ class _MyHomePageState extends State<MyHomePage> {
           // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Text('Login', style: TextStyle(fontSize: 40, color: Colors.green),),
+            const SizedBox(height: 20),
             const EmailForm(),
             const SizedBox(height: 20),
             const SenhaForm(),
             const SizedBox(height: 20),
-            TextButton(style: ButtonStyle(
+            TextButton(
+                style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all<Color>(Colors.green),
                 foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
                 minimumSize: MaterialStateProperty.all(Size(180, 60))
               ), onPressed: (){
                 fetchLogin();
-              }, child: Text('Entrar'))
+              }, child: Text('Entrar')),
+            const SizedBox(height: 20),
+            TextButton(
+                onPressed: (){},
+                style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.green),
+                foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                minimumSize: MaterialStateProperty.all(Size(180, 60))
+            ), child: Text('Cadastre-se'))
           ],
         ),
       ),
     );
+  }
+  void rebuildAllChildren(BuildContext context) {
+    void rebuild(Element el) {
+      el.markNeedsBuild();
+      el.visitChildren(rebuild);
+    }
+    (context as Element).visitChildren(rebuild);
   }
 }

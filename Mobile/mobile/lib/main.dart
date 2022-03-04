@@ -9,6 +9,7 @@ import 'dart:convert';
 void main() {
   runApp(const MyApp());
 }
+//Cor global para a dinamica dos inputs
 Color InputsColor = Color(0xff808080);
 
 class MyApp extends StatelessWidget {
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
+//Widget de Input para o email
 class EmailForm extends StatefulWidget {
   const EmailForm({Key? key}) : super(key: key);
 
@@ -44,16 +46,13 @@ class EmailForm extends StatefulWidget {
   _EmailFormState createState() => _EmailFormState();
 }
 
-// Define a corresponding State class.
-// This class holds the data related to the Form.
+//Guarda o valor do input do email
 class _EmailFormState extends State<EmailForm> {
-  // Create a text controller and use it to retrieve the current value
-  // of the TextField.
+  //Controlador de texto que recebe o valor do input. Estatico para que haja acesso global
   static final controladorEmailForm = TextEditingController();
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     controladorEmailForm.dispose();
     super.dispose();
   }
@@ -77,7 +76,7 @@ class _EmailFormState extends State<EmailForm> {
     );
   }
 }
-
+//Widget de Input para a senha
 class SenhaForm extends StatefulWidget {
   const SenhaForm({Key? key}) : super(key: key);
 
@@ -85,16 +84,13 @@ class SenhaForm extends StatefulWidget {
   _SenhaFormState createState() => _SenhaFormState();
 }
 
-// Define a corresponding State class.
-// This class holds the data related to the Form.
+//Guarda o valor do input da senha
 class _SenhaFormState extends State<SenhaForm> {
-  // Create a text controller and use it to retrieve the current value
-  // of the TextField.
+//Controlador de texto que recebe o valor do input. Estatico para que haja acesso global
   static final controladorSenhaForm = TextEditingController();
 
   @override
   void dispose() {
-    // Clean up the controller when the widget is disposed.
     controladorSenhaForm.dispose();
     super.dispose();
   }
@@ -143,7 +139,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
+    //Maneira simplificada de ocultar a action bar e a task bar
     SystemChrome.setEnabledSystemUIOverlays([]);
+
+    //Metodo para a realizacao da requisicao de login a API
     Future<void> fetchLogin() async {
       final response = await http
           .post(Uri.parse('http://192.168.15.123:5000/api/Login'),
@@ -156,8 +155,10 @@ class _MyHomePageState extends State<MyHomePage> {
         }),
       );
       if (response.statusCode == 200) {
+        //Mudanca de cor dos inputs de acordo com o retorno da API
         InputsColor = Color(0xff808080);
         rebuildAllChildren(context);
+        //Exibicao de mensagem na tela
         return showDialog<void>(
           context: context,
           barrierDismissible: false, // user must tap button!
@@ -183,8 +184,10 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         );
       } else {
+        //Mudanca de cor dos inputs de acordo com o retorno da API
         InputsColor = Color(0xffFF0000);
         rebuildAllChildren(context);
+        //Exibicao de mensagem na tela
         return showDialog<void>(
           context: context,
           barrierDismissible: false, // user must tap button!
@@ -265,6 +268,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+  //Metodo para reconstruir os elementos em momentos de mudancas
   void rebuildAllChildren(BuildContext context) {
     void rebuild(Element el) {
       el.markNeedsBuild();
